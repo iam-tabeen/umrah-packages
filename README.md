@@ -62,7 +62,7 @@ A premium, fast, read-only marketing portal showcasing live Umrah travel package
 ### 1. Configure Environment Variables
 Create a local environment variables file `.env.local` based on `.env.local.example`:
 ```env
-UMRAH_API_URL=https://api.safreibadat.com/api/UmrGroupView/
+UMRAH_API_URL=https://api.meezabgroup.com/api/UmrGroupView/
 UMRAH_API_KEY=YOUR_OPTIONAL_BEARER_TOKEN
 ```
 

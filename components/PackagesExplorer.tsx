@@ -2,10 +2,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, RefreshCw, X, ChevronRight, SlidersHorizontal, AlertCircle } from 'lucide-react';
-import { FlightGroup, PackageOption } from '../lib/types';
+import { FlightGroup } from '../lib/types';
 import { FlightGroupCard } from './FlightGroupCard';
 import { RangeSlider } from './RangeSlider';
-import { BookNowModal } from './BookNowModal';
 
 interface PackagesExplorerProps {
   initialData: FlightGroup[];
@@ -50,14 +49,6 @@ export function PackagesExplorer({ initialData, isFallback }: PackagesExplorerPr
 
   // --- Mobile Filter Drawer State ---
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-
-  // --- Booking Modal State ---
-  const [activeBooking, setActiveBooking] = useState<{
-    pkg: PackageOption;
-    roomType: string;
-    price: number;
-    group: FlightGroup;
-  } | null>(null);
 
   // --- Derived Unique Lists for Filters ---
   const uniqueSectors = useMemo(() => {
@@ -295,10 +286,6 @@ export function PackagesExplorer({ initialData, isFallback }: PackagesExplorerPr
     setSelectedMedinahHotels(prev =>
       prev.includes(hotel) ? prev.filter(h => h !== hotel) : [...prev, hotel]
     );
-  };
-
-  const handleBookTrigger = (pkg: PackageOption, roomType: string, price: number, group: FlightGroup) => {
-    setActiveBooking({ pkg, roomType, price, group });
   };
 
   // Render Sidebar Filters Content (reusable for desktop & mobile bottom sheet)
@@ -695,7 +682,6 @@ export function PackagesExplorer({ initialData, isFallback }: PackagesExplorerPr
             <FlightGroupCard
               key={group.groupOid}
               group={group}
-              onBookClick={(pkg, roomType, price) => handleBookTrigger(pkg, roomType, price, group)}
             />
           ))}
 
@@ -775,20 +761,6 @@ export function PackagesExplorer({ initialData, isFallback }: PackagesExplorerPr
             </div>
           </div>
         </div>
-      )}
-
-      {/* Booking Inquiry Modal */}
-      {activeBooking && (
-        <BookNowModal
-          isOpen={true}
-          onClose={() => setActiveBooking(null)}
-          packageCode={activeBooking.pkg.packageCode}
-          makkahHotel={activeBooking.pkg.makkahHotel}
-          medinahHotel={activeBooking.pkg.medinahHotel}
-          departureDateString={activeBooking.group.departureDateString}
-          roomType={activeBooking.roomType}
-          price={activeBooking.price}
-        />
       )}
 
       {/* Local slideUp animation styles */}

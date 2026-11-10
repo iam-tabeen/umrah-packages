@@ -25,7 +25,7 @@ export default async function Home() {
             Compare Live Umrah Packages for 2026
           </h1>
           <p className="text-sm sm:text-base text-emerald-150 max-w-xl font-medium leading-relaxed">
-            Browse and filter live group flight packages, compare hotel accommodation plans, and secure seat availability instantly. Tap <strong className="text-white">Book Now</strong> to get connected with a travel agent.
+            Browse and filter live group flight packages, compare hotel accommodation plans, and check seat availability.
           </p>
         </div>
       </div>

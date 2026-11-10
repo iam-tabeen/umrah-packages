@@ -110,11 +110,11 @@ interface FetchResult {
 }
 
 /**
- * Fetches Umrah packages from the third-party XML API and groups them.
+ * Fetches Umrah packages from the third-party API and groups them.
  * Never called on the client side to keep credentials and requests secure.
  */
 export async function fetchUmrahPackages(): Promise<FetchResult> {
-  const apiUrl = process.env.UMRAH_API_URL || 'https://api.safreibadat.com/api/UmrGroupView/';
+  const apiUrl = process.env.UMRAH_API_URL || 'https://api.meezabgroup.com/api/UmrGroupView/';
   const apiKey = process.env.UMRAH_API_KEY;
 
   console.log(`[API Fetch] Initiating data request to: ${apiUrl}`);
@@ -131,7 +131,7 @@ export async function fetchUmrahPackages(): Promise<FetchResult> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 5000); // 5-second timeout to prevent infinite loading screen hang
+    }, 20000);
 
     const res = await fetch(apiUrl, {
       method: 'GET',
@@ -148,39 +148,50 @@ export async function fetchUmrahPackages(): Promise<FetchResult> {
       throw new Error(`HTTP error! Status: ${res.status}`);
     }
 
-    const xmlData = await res.text();
-    if (!xmlData || xmlData.trim() === '') {
-      throw new Error('Received empty XML response from API');
+    const responseBody = await res.text();
+    const trimmedBody = responseBody.trim();
+    if (!trimmedBody) {
+      throw new Error('Received empty response from API');
     }
 
-    // Initialize fast-xml-parser
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      parseTagValue: true,
-      trimValues: true,
-    });
+    const contentType = res.headers.get('content-type') || '';
+    const isJson = contentType.includes('json') || trimmedBody.startsWith('[') || trimmedBody.startsWith('{');
 
-    const parsedResult = parser.parse(xmlData);
-    
-    // Extract root tag dynamically
-    const rootKey = Object.keys(parsedResult)[0];
-    if (!rootKey) {
-      throw new Error('Invalid XML response structure: No root element found');
+    let rawDtos: UmrahRawDto[];
+
+    if (isJson) {
+      const parsedJson = JSON.parse(trimmedBody);
+      const records = Array.isArray(parsedJson) ? parsedJson : parsedJson?.UmrGroupViewDto ?? parsedJson?.data;
+      if (!records) {
+        throw new Error('Invalid JSON response structure: expected a package list');
+      }
+      rawDtos = Array.isArray(records) ? records : [records];
+    } else {
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        parseTagValue: true,
+        trimValues: true,
+      });
+
+      const parsedResult = parser.parse(trimmedBody);
+
+      const rootKey = Object.keys(parsedResult)[0];
+      if (!rootKey) {
+        throw new Error('Invalid XML response structure: No root element found');
+      }
+
+      const rootObj = parsedResult[rootKey];
+      const listKey = Object.keys(rootObj).find(k => k.includes('UmrGroupViewDto'));
+      if (!listKey || !rootObj[listKey]) {
+        throw new Error(`Invalid XML response structure: Could not find list elements with key matching 'UmrGroupViewDto'`);
+      }
+
+      rawDtos = Array.isArray(rootObj[listKey])
+        ? rootObj[listKey]
+        : [rootObj[listKey]];
     }
 
-    const rootObj = parsedResult[rootKey];
-    // Find the repeating list key (e.g. contains 'UmrGroupViewDto')
-    const listKey = Object.keys(rootObj).find(k => k.includes('UmrGroupViewDto'));
-    if (!listKey || !rootObj[listKey]) {
-      throw new Error(`Invalid XML response structure: Could not find list elements with key matching 'UmrGroupViewDto'`);
-    }
-
-    // Ensure list elements are in an array
-    const rawDtos: UmrahRawDto[] = Array.isArray(rootObj[listKey])
-      ? rootObj[listKey]
-      : [rootObj[listKey]];
-
-    console.log(`[API Fetch] Successfully parsed ${rawDtos.length} packages from XML`);
+    console.log(`[API Fetch] Successfully parsed ${rawDtos.length} packages`);
     const grouped = groupPackagesByFlight(rawDtos);
     console.log(`[API Fetch] Grouped packages into ${grouped.length} flight groups`);
 

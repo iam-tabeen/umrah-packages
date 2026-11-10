@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plane, Calendar, Moon, Users, ChevronDown, ChevronUp, Hotel, ShieldCheck } from 'lucide-react';
+import { Plane, Calendar, Moon, Users, ChevronDown, ChevronUp, Hotel } from 'lucide-react';
 import { FlightGroup, PackageOption } from '../lib/types';
 
 interface FlightGroupCardProps {
   group: FlightGroup;
-  onBookClick: (pkg: PackageOption, roomType: string, price: number) => void;
 }
 
-export function FlightGroupCard({ group, onBookClick }: FlightGroupCardProps) {
+export function FlightGroupCard({ group }: FlightGroupCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Formatting helpers
@@ -212,24 +211,18 @@ export function FlightGroupCard({ group, onBookClick }: FlightGroupCardProps) {
                       </span>
                     </td>
 
-                    {/* Pricing cells with hover triggers */}
+                    {/* Pricing cells */}
                     {['sharing', 'quad', 'triple', 'double'].map((roomType) => {
                       const priceVal = pkg[roomType as keyof PackageOption] as number;
                       const hasPrice = priceVal > 0;
                       return (
                         <td key={roomType} className="px-2 py-3 text-center">
                           {hasPrice ? (
-                            <button
-                              onClick={() => onBookClick(pkg, roomType, priceVal)}
-                              className="group w-full block p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/60 cursor-pointer"
-                            >
-                              <span className="block font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 text-xs">
+                            <div className="w-full block p-2">
+                              <span className="block font-bold text-slate-800 dark:text-slate-200 text-xs">
                                 {formatPrice(priceVal)}
                               </span>
-                              <span className="inline-block text-[9px] uppercase tracking-wider font-semibold text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors mt-0.5">
-                                Book Room
-                              </span>
-                            </button>
+                            </div>
                           ) : (
                             <span className="text-slate-300 dark:text-slate-700 text-xs">-</span>
                           )}
@@ -291,10 +284,9 @@ export function FlightGroupCard({ group, onBookClick }: FlightGroupCardProps) {
                     return (
                       <div
                         key={room.key}
-                        onClick={() => hasPrice && onBookClick(pkg, room.label, priceVal)}
                         className={`p-2.5 rounded-xl border ${
                           hasPrice
-                            ? 'bg-slate-50/50 hover:bg-emerald-50 border-slate-100 hover:border-emerald-200 dark:bg-slate-800/30 dark:hover:bg-emerald-950/20 dark:border-slate-800/40 dark:hover:border-emerald-900/60 cursor-pointer active:scale-98 transition-all'
+                            ? 'bg-slate-50/50 border-slate-100 dark:bg-slate-800/30 dark:border-slate-800/40'
                             : 'border-slate-100 dark:border-slate-800 opacity-40'
                         }`}
                       >
@@ -306,15 +298,6 @@ export function FlightGroupCard({ group, onBookClick }: FlightGroupCardProps) {
                     );
                   })}
                 </div>
-
-                {/* Mobile Single Main Book Button */}
-                <button
-                  onClick={() => onBookClick(pkg, 'Sharing', pkg.sharing || pkg.quad || pkg.triple || pkg.double || 0)}
-                  className="w-full py-2.5 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-950 text-white font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Request Booking Callback
-                </button>
               </div>
             ))}
           </div>
